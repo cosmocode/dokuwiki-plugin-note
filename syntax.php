@@ -132,7 +132,12 @@ class syntax_plugin_note extends DokuWiki_Syntax_Plugin {
               $colors = array("note"=>"#eeffff", "warning"=>"#ffdddd", "important"=>"#ffffcc", "tip"=>"#ddffdd");
               $renderer->autostyles["pluginnote"] = '
                   <style:style style:name="pluginnote" style:family="table">
-                      <style:table-properties style:width="15cm" table:align="center" style:shadow="#808080 0.18cm 0.18cm"/>
+                      <style:table-properties
+                            style:width="15cm"
+                            table:align="center"
+                            style:shadow="#808080 0.18cm 0.18cm"
+                            style:may-break-between-rows="false"
+                            />
                   </style:style>';
               $renderer->autostyles["pluginnote.A"] = '
                   <style:style style:name="pluginnote.A" style:family="table-column">
