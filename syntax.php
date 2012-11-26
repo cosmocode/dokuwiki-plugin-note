@@ -101,95 +101,160 @@ class syntax_plugin_note extends DokuWiki_Syntax_Plugin {
     function render($mode, &$renderer, $indata) {
 
         if($mode == 'xhtml'){
+            list($state, $data) = $indata;
 
-          list($state, $data) = $indata;
-
-          switch ($state) {
-            case DOKU_LEXER_ENTER :
-              $renderer->doc .= '<p><div class="'.$data.'">';
-              break;
+            switch ($state) {
+                case DOKU_LEXER_ENTER :
+                    $renderer->doc .= '<p><div class="'.$data.'">';
+                    break;
   
-            case DOKU_LEXER_UNMATCHED :
-              $renderer->doc .= $renderer->_xmlEntities($data);
-              break;
+                case DOKU_LEXER_UNMATCHED :
+                    $renderer->doc .= $renderer->_xmlEntities($data);
+                    break;
   
-            case DOKU_LEXER_EXIT :
-              $renderer->doc .= "\n</div></p>";
-              break;
-          }
-          return true;
+                case DOKU_LEXER_EXIT :
+                    $renderer->doc .= "\n</div></p>";
+                    break;
+            }
+            return true;
 
         } elseif ($mode == 'odt'){
-
-          list($state, $data) = $indata;
-
-          switch ($state) {
-            case DOKU_LEXER_ENTER :
-              $type = substr($data, 4);
-              if ($type == "classic") {
-                $type = "note"; // the icon for classic notes is named note.png
-              }
-              $colors = array("note"=>"#eeffff", "warning"=>"#ffdddd", "important"=>"#ffffcc", "tip"=>"#ddffdd");
-              $renderer->autostyles["pluginnote"] = '
-                  <style:style style:name="pluginnote" style:family="table">
-                      <style:table-properties
-                            style:width="15cm"
-                            table:align="center"
-                            style:shadow="#808080 0.18cm 0.18cm"
-                            style:may-break-between-rows="false"
-                            />
-                  </style:style>';
-              $renderer->autostyles["pluginnote.A"] = '
-                  <style:style style:name="pluginnote.A" style:family="table-column">
-                      <style:table-column-properties style:column-width="1.5cm"/>
-                  </style:style>';
-              $renderer->autostyles["pluginnote.B"] = '
-                  <style:style style:name="pluginnote.B" style:family="table-column">
-                      <style:table-column-properties style:column-width="13.5cm"/>
-                  </style:style>';
-              $renderer->autostyles["pluginnote".$type.".A1"] = '
-                  <style:style style:name="pluginnote'.$type.'.A1" style:family="table-cell">
-                      <style:table-cell-properties style:vertical-align="middle" fo:padding="0.1cm" fo:border-left="0.002cm solid #000000" fo:border-right="none" fo:border-top="0.002cm solid #000000" fo:border-bottom="0.002cm solid #000000" fo:background-color="'.$colors[$type].'"/>
-                  </style:style>';
-              $renderer->autostyles["pluginnote".$type.".B1"] = '
-                  <style:style style:name="pluginnote'.$type.'.B1" style:family="table-cell">
-                      <style:table-cell-properties style:vertical-align="middle" fo:padding="0.3cm" fo:border-left="none" fo:border-right="0.002cm solid #000000" fo:border-top="0.002cm solid #000000" fo:border-bottom="0.002cm solid #000000" fo:background-color="'.$colors[$type].'"/>
-                  </style:style>';
-              // Content
-              $renderer->p_close();
-              $renderer->doc .= '<table:table table:name="" table:style-name="pluginnote">';
-              $renderer->doc .= '<table:table-column table:style-name="pluginnote.A"/>';
-              $renderer->doc .= '<table:table-column table:style-name="pluginnote.B"/>';
-              $renderer->doc .= '<table:table-row>';
-              $renderer->doc .= '<table:table-cell table:style-name="pluginnote'.$type.'.A1" office:value-type="string">';
-              // Don't use p_open, as it's not the same style-name
-              $renderer->doc .= '<text:p text:style-name="Table_20_Contents">';
-              $src = DOKU_PLUGIN."note/images/".$type.".png";
-              $renderer->_odtAddImage($src);
-              $renderer->doc .= '</text:p>';
-              $renderer->doc .= '</table:table-cell>';
-              $renderer->doc .= '<table:table-cell table:style-name="pluginnote'.$type.'.B1" office:value-type="string">';
-              $renderer->p_open();
-              break;
+            list($state, $data) = $indata;
+            $pageWidth = $this->getPageWidth();
+            $pageWidth *= 0.8;
+            switch ($state) {
+                case DOKU_LEXER_ENTER :
+                    $type = substr($data, 4);
+                    if ($type == "classic") {
+                        $type = "note"; // the icon for classic notes is named note.png
+                    }
+                    $colors = array("note"=>"#eeffff", "warning"=>"#ffdddd", "important"=>"#ffffcc", "tip"=>"#ddffdd");
+                    $renderer->autostyles["pluginnote"] = '
+                          <style:style style:name="pluginnote" style:family="table">
+                              <style:table-properties
+                                    style:width="'.$pageWidth.'cm"
+                                    table:align="center"
+                                    style:shadow="#808080 0.18cm 0.18cm"
+                                    style:may-break-between-rows="false"
+                                    />
+                          </style:style>';
+                    $renderer->autostyles["pluginnote.A"] = '
+                          <style:style style:name="pluginnote.A" style:family="table-column">
+                              <style:table-column-properties style:column-width="1.5cm"/>
+                          </style:style>';
+                    $renderer->autostyles["pluginnote.B"] = '
+                          <style:style style:name="pluginnote.B" style:family="table-column">
+                              <style:table-column-properties style:column-width="'.($pageWidth - 1.5).'cm"/>
+                          </style:style>';
+                    $renderer->autostyles["pluginnote".$type.".A1"] = '
+                          <style:style style:name="pluginnote'.$type.'.A1" style:family="table-cell">
+                              <style:table-cell-properties style:vertical-align="middle" fo:padding="0.1cm" fo:border-left="0.002cm solid #000000" fo:border-right="none" fo:border-top="0.002cm solid #000000" fo:border-bottom="0.002cm solid #000000" fo:background-color="'.$colors[$type].'"/>
+                          </style:style>';
+                    $renderer->autostyles["pluginnote".$type.".B1"] = '
+                          <style:style style:name="pluginnote'.$type.'.B1" style:family="table-cell">
+                              <style:table-cell-properties style:vertical-align="middle" fo:padding="0.3cm" fo:border-left="none" fo:border-right="0.002cm solid #000000" fo:border-top="0.002cm solid #000000" fo:border-bottom="0.002cm solid #000000" fo:background-color="'.$colors[$type].'"/>
+                          </style:style>';
+                    // Content
+                    $renderer->p_close();
+                    $renderer->doc .= '<table:table table:name="" table:style-name="pluginnote">';
+                    $renderer->doc .= '<table:table-column table:style-name="pluginnote.A"/>';
+                    $renderer->doc .= '<table:table-column table:style-name="pluginnote.B"/>';
+                    $renderer->doc .= '<table:table-row>';
+                    $renderer->doc .= '<table:table-cell table:style-name="pluginnote'.$type.'.A1" office:value-type="string">';
+                    // Don't use p_open, as it's not the same style-name
+                    $renderer->doc .= '<text:p text:style-name="Table_20_Contents">';
+                    $src = DOKU_PLUGIN."note/images/".$type.".png";
+                    $renderer->_odtAddImage($src);
+                    $renderer->doc .= '</text:p>';
+                    $renderer->doc .= '</table:table-cell>';
+                    $renderer->doc .= '<table:table-cell table:style-name="pluginnote'.$type.'.B1" office:value-type="string">';
+                    $renderer->p_open();
+                    break;
   
-            case DOKU_LEXER_UNMATCHED :
-              $renderer->cdata($data);
-              break;
+                case DOKU_LEXER_UNMATCHED :
+                    $renderer->cdata($data);
+                    break;
   
-            case DOKU_LEXER_EXIT :
-              $renderer->p_close();
-              $renderer->doc .= '</table:table-cell>';
-              $renderer->doc .= '</table:table-row>';
-              $renderer->doc .= '</table:table>';
-              $renderer->p_open();
-              break;
-          }
-          return true;
+                case DOKU_LEXER_EXIT :
+                    $renderer->p_close();
+                    $renderer->doc .= '</table:table-cell>';
+                    $renderer->doc .= '</table:table-row>';
+                    $renderer->doc .= '</table:table>';
+                    $renderer->p_open();
+                    break;
+            }
+            return true;
         }
         
         // unsupported $mode
         return false;
-    } 
+    }
+
+    function getPageWidth() {
+        global $INFO, $conf, $ID;
+        $template = '';
+        if (isset($INFO['meta']['relation']['odt']['template'])) {
+            $template = $INFO['meta']['relation']['odt']['template'];
+        }
+
+        if (!$template and $conf['plugin']['odt']['tpl_default']) {
+            $template = $conf['plugin']['odt']['tpl_default'];
+        }
+
+        if (!$template) {
+            return 21;
+        }
+
+        $template_path = $conf['mediadir'].'/'.$conf['plugin']['odt']['tpl_dir'].'/'.$template;
+        if (!file_exists($template_path)) {
+            return 21;
+        }
+
+        $temp_dir = $conf['tmpdir'].'/odt/'.str_replace(':','-',$ID);
+        if (is_dir($temp_dir)) { $this->io_rm_rf($temp_dir); }
+        io_mkdir_p($temp_dir);
+
+        // Extract template
+        $zip = new ZipLib();
+        $zip->Extract($template_path, $temp_dir);
+
+        $styles = io_readFile($temp_dir . '/styles.xml');
+        $results = preg_match_all('/fo\:page\-width\="([0-9\.]+)(c|m)m"/i', $styles, $matches);
+        if ($results == 0) {
+            return 21;
+        }
+        $width = array();
+        for($i=0;$i<$results;$i++) {
+            if ($matches[2][$i] == 'm') {
+                $width[] = floatval($matches[1][$i]) / 100;
+            } else {
+                $width[] = floatval($matches[1][$i]);
+            }
+        }
+
+        sort($width);
+        $this->io_rm_rf($temp_dir);
+        return $width[0];
+    }
+
+    /**
+     * Recursively deletes a directory (equivalent to the "rm -rf" command)
+     * Found in comments on http://www.php.net/rmdir
+     */
+    function io_rm_rf($f) {
+        if (is_dir($f)) {
+            foreach(glob($f.'/*') as $sf) {
+                if (is_dir($sf) && !is_link($sf)) {
+                    $this->io_rm_rf($sf);
+                } else {
+                    unlink($sf);
+                }
+            }
+        } else { // avoid nasty consequenses if something wrong is given
+            die("Error: not a directory - $f");
+        }
+        rmdir($f);
+    }
 }
  
 //Setup VIM: ex: et ts=4 enc=utf-8 :
